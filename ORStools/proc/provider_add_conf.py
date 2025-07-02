@@ -128,17 +128,18 @@ class ORSProviderAddAlgo(QgsProcessingAlgorithm):
                     ]
                 },
             )
-            s.sync() # this gives no feedback whatsover, so checking manually necessary:
-
-            #testing writability of Config.
+            s.sync()  # this gives no feedback whatsover, so checking manually is necessary:
             try:
-                with open(s.fileName(), 'a'):
+                with open(s.fileName(), "a"):
                     pass
-                return {"OUTPUT": f"new config added: {provider_name}"}
+                msg = f"config has been added: {provider_name}"
             except IOError as e:
-                return {"OUTPUT": f"new config has not been added: {e} | {s.fileName()}"}
+                msg = f"config couldn't be added: {e} | {s.fileName()}"
 
-            
+            return {
+                "OUTPUT": msg,
+                "CONFIG": s.value("ORStools/config", {"providers": []})["providers"],
+            }
 
     def createInstance(self):
         return self.__class__()
@@ -157,3 +158,8 @@ class ORSProviderAddAlgo(QgsProcessingAlgorithm):
         context = context or self.__class__.__name__
         return QCoreApplication.translate(context, string)
         # return string #disabling QCoreApplication.translate due to Qt
+
+    def flags(self):
+        return (
+            super().flags() | QgsProcessingAlgorithm.FlagHideFromToolbox
+        )  # prior 3.36 but seems to work in 3.42, too
